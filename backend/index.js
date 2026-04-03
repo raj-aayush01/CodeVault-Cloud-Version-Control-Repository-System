@@ -1,5 +1,6 @@
 const yargs = require("yargs");
 const { hideBin } = require("yargs/helpers");
+require("dotenv").config();
 
 const { initRepo } = require("./controllers/init");
 const { addRepo } = require("./controllers/add");
