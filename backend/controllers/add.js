@@ -7,9 +7,11 @@ async function addRepo(filePath) {
 
   try {
     await fs.mkdir(stagingPath, { recursive: true });         // Actually creating staging folder,   Location --->  backend/.apnaGit/staging   and recursive: true means if parent doesnot exist create parents also.
-    const fileName = path.basename(filePath);
+
+    const fileName = path.basename(filePath);                        // Adding only base file, if it has nested folder and file, we are taking only file.. 
     await fs.copyFile(filePath, path.join(stagingPath, fileName));
     console.log(`File ${fileName} added to the staging area!`);
+
   } catch(err) {
       console.error("Error adding file : ", err);
   }
