@@ -1,28 +1,40 @@
-const fs = require('fs');
+const fs = require("fs").promises;
 const path = require("path");
-const { promisify } = require("util");
+const {promisify}= require("util");
 
-const readdir = promisify(fs.readdir);
-const copyFile = promisify(fs.copyFile);
+async function revertRepo(commitId) {
 
-async function revertRepo( commitID ) {
-  const repoPath = path.resolve(process.cwd(), ".apnaGit");
-	const commitsPath = path.join(repoPath, "commits");
+  const currentDir = process.cwd();
+  const repoPath = path.join(currentDir, ".apnaGit");
+  const commitsPath = path.join(repoPath, "commits");
+  const commitDir = path.join(commitsPath, commitId);
 
-	try {
-		const commitDir = path.join(commitsPath, commitID);
-		const files = await readdir(commitDir);
-		const parentDir = path.resolve(repoPath, "..");
+  try {
+    await fs.access(commitDir);
 
-		for(const file of files) {
-			await copyFile(path.join(commitDir, file), path.join(parentDir, file));
-		}
+    const files = await fs.readdir(commitDir);
 
-		console.log(`Commit ${commitID} reverted successfully!`);
+    if (files.length === 0) {
+      console.log("No files in this commit");
+      return;
+    }
 
-	} catch(err) {
-			console.error("Unable to revert : " , err);
-	}
+    for (const file of files) {
+
+      if (file === "commit.json") continue;
+
+      const src = path.join(commitDir, file);
+      const dest = path.join(currentDir, file);
+
+      await fs.copyFile(src, dest);
+    }
+
+    console.log(`Reverted to commit: ${commitId}`);
+
+  } catch (err) {
+    console.error("Error reverting:", err.message);
+    
+  }
 }
 
 module.exports = { revertRepo };

@@ -2,18 +2,20 @@ const fs = require("fs").promises;
 const path = require("path");
 
 async function addRepo(filePath) {
-  const repoPath = path.resolve(process.cwd(), ".apnaGit");   // Getting absolute path of .apnaGit folder
-  const stagingPath = path.join(repoPath, "staging");         // Creating path by appending staging folder inside .apnaGit folder
+  const currentDir = process.cwd();
+  const repoPath = path.join(currentDir, ".apnaGit");
+  const stagingPath = path.join(repoPath, "staging");
+//   const filePath = path.join(currentDir, fileName);
 
   try {
-    await fs.mkdir(stagingPath, { recursive: true });         // Actually creating staging folder,   Location --->  backend/.apnaGit/staging   and recursive: true means if parent doesnot exist create parents also.
+    await fs.mkdir(stagingPath, { recursive: true });
+    const fileName= path.basename(filePath);
+    await fs.copyFile(filePath, path.join(stagingPath,fileName))
+    console.log(`File "${fileName}" added to staging area`);
 
-    const fileName = path.basename(filePath);                        // Adding only base file, if it has nested folder and file, we are taking only file.. 
-    await fs.copyFile(filePath, path.join(stagingPath, fileName));
-    console.log(`File ${fileName} added to the staging area!`);
-
-  } catch(err) {
-      console.error("Error adding file : ", err);
+  } 
+  catch (err) {
+   console.error("Error adding file: ",err);
   }
 }
 

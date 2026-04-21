@@ -1,35 +1,56 @@
 const fs = require("fs").promises;
 const path = require("path");
-const { v4: uuidv4 } = require("uuid");
+const crypto = require("crypto"); // hash generate karne ke liye
 
-async function commitRepo( message ) {
-  const repoPath = path.resolve(process.cwd(), ".apnaGit");   // Creating path by appending .apnaGit inside current woking directory (which is backend here)
-  const stagedPath = path.join(repoPath , "staging");         // Creating path by appending staging to the .apnaGit folder location,   Location --->  backend/.apnaGit/staging
-  const commitPath = path.join(repoPath, "commits");          // Creating path by appending commits to the .apnaGit folder location,   Location --->  backend/.apnaGit/commits
+async function commitRepo(message) {
+
+  const currentDir = process.cwd();
+  const repoPath = path.join(currentDir, ".apnaGit");
+  const stagingPath = path.join(repoPath, "staging");
+  const commitsPath = path.join(repoPath, "commits");
 
   try {
-    const commitId = uuidv4();
-    const commitDir = path.join(commitPath, commitId);    // creates a path by appending commitId as a new folder inside the commits directory
-    await fs.mkdir(commitDir, { recursive: true });       // creates that folder on disk (and parent folders if missing)
-    
-    const files = await fs.readdir(stagedPath);    // Reads all file names inside the staging directory. 'stagedPath' already points to the exact folder (backend/.apnaGit/staging),  (trailing '/' optional), Returns an array of file names (not full paths).
 
-    for(const file of files){
-      await fs.copyFile(
-        path.join(stagedPath, file),      // builds full path to the source file inside staging folder
-        path.join(commitDir, file)       // builds full path to destination file inside the specific commit folder with specific commitID
-      );
+    const files = await fs.readdir(stagingPath);
+
+    if (files.length === 0) {
+      console.log("Nothing to commit. Use add first.");
+      return;
+    }
+    
+    const commitId = crypto.randomBytes(20).toString("hex");
+   
+    //new commit folder
+    const commitDir = path.join(commitsPath, commitId);
+    await fs.mkdir(commitDir, { recursive: true });
+
+
+    for (const file of files) {
+      const src = path.join(stagingPath, file);
+      const dest = path.join(commitDir, file);
+
+      await fs.copyFile(src, dest);
     }
 
+    const metadata = {
+      message,
+      date: new Date().toISOString(),
+      files
+    };
+
     await fs.writeFile(
-      path.join(commitDir, "commit.json"), 
-      JSON.stringify({ message, date: new Date().toISOString() })
+      path.join(commitDir, "commit.json"),
+      JSON.stringify(metadata)
     );
 
-    console.log(`Commit ${commitId} created with message : ${message}`);
+    for (const file of files) {
+      await fs.unlink(path.join(stagingPath, file));
+    }
 
-  } catch(err) {
-    console.error("Error commiting files : ", err);
+    console.log(`Commit ID: ${commitId} created for your commit with message: ${message}`);
+
+  } catch (err) {
+    console.error("Error committing files:", err.message);
   }
 }
 

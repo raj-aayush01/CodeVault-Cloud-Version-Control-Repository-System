@@ -1,40 +1,69 @@
 const fs = require("fs").promises;
-const path = require('path');
-const { s3, S3_BUCKET } = require('../config/aws-config');
+const path = require("path");
+const { s3, S3_BUCKET } = require("../config/aws-config");
 
 async function pullRepo() {
-  const repoPath = path.resolve(process.cwd(), ".apnaGit" );
-	const commitsPath = path.join(repoPath, "commits");
 
-	try {
-		const data = await s3.listObjectsV2({
-			Bucket: S3_BUCKET,
-			Prefix: "commits/" ,
-		})
-		.promise();
+  const currentDir = process.cwd();
+  const repoPath = path.join(currentDir, ".apnaGit");
+  const commitsPath = path.join(repoPath, "commits");
 
-		const objects = data.Contents;
+  try {
+    const config = JSON.parse(
+      await fs.readFile(path.join(repoPath, "config.json"), "utf-8")
+    );
+    const { userId, repoName } = config;
 
-		for(const object of objects){
-			const key = object.Key;
-			const commitDir = path.join(commitsPath, path.dirname(key).split("/").pop());
 
-			await fs.mkdir(commitDir, { recursive: true });
+     const prefix = `${userId}/${repoName}/commits/`;
+    const data = await s3.listObjectsV2({
+      Bucket: S3_BUCKET,
+      Prefix:  prefix
+    }).promise();
 
-			const params = {
-				Bucket: S3_BUCKET,
-				Key: key,
-			};
 
-			const fileContent = await s3.getObject(params).promise();
+    const objects = data.Contents; 
 
-			await fs.writeFile(path.join(repoPath, key), fileContent.Body);    
-		}
-		console.log("All commits pulled from S3.");
+    if (!objects || objects.length === 0) {
+      console.log("No files found in S3, Nothing to pull");
+      return;
+    }
 
-	} catch(err) {
-		console.log("Unable to pull : " , err);
-	}
+
+    for (const obj of objects) {
+      const key = obj.Key; 
+
+      const parts = key.split("/");
+
+      const commitId = parts[3];
+      const fileName = parts[4];
+
+       if (!fileName) continue;
+
+      //  local commit folder
+      const commitDir = path.join(commitsPath, commitId);
+      await fs.mkdir(commitDir, { recursive: true });
+
+
+      const fileData = await s3.getObject({
+        Bucket: S3_BUCKET,
+        Key: key
+      }).promise();
+
+      //  save in local 
+      await fs.writeFile(
+        path.join(commitDir, fileName),
+        fileData.Body
+      );
+
+      console.log(`All commits pulled from S3: ${commitId}/${fileName}`);
+    }
+
+    console.log("Pull completed successfully!");
+
+  } catch (err) {
+    console.error("Error pulling from S3:", err.message);
+  }
 }
 
 module.exports = { pullRepo };

@@ -1,53 +1,62 @@
-const mongoose = require('mongoose');
-const { Schema } = mongoose;
+const mongoose =require("mongoose");
+const {Schema}=mongoose;
 
 const UserSchema = new Schema({
-    username: {
-        type: String,
-        required: true,
-        unique: true ,
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true ,
-    },
-    password: {
-        type: String,
-    },
-    repositories: [
-        {
-            default: [],
-            type: Schema.Types.ObjectId,
-            ref: "Repository" ,
-        },
-    ],
-    followedUsers: [
-        {
-            default: [],
-            type: Schema.Types.ObjectId,
-            ref: "User" ,
-        },
-    ],
-    starRepos: [
-        {
-            default: [],
-            type: Schema.Types.ObjectId,
-            ref: "Repository" ,
-        },
-    ],
-});
+  username: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+
+  password: {
+    type: String,
+  },
 
 
-const User = mongoose.model("User", UserSchema);
+  googleId: {
+    type: String,
+    default: null  
+  },
 
-module.exports = User;
 
+  avatar: {
+    type: String,
+    default: null
+  },
 
+  // array of repositories (reference)
+  repositories: [
+    {
+      default:[],
+      type: Schema.Types.ObjectId,
+      ref: "Repository",
+    }
+  ],
 
+  followedUsers: [
+    {
+      default:[],
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    }
+  ],
 
-// repositories: {
-//     type: [Schema.Types.ObjectId],
-//     ref: "Repository",
-//     default: [],
-// }
+  starRepos: [
+    {
+      default:[],
+      type: Schema.Types.ObjectId,
+      ref: "Repository",
+    }
+  ]
+
+}, { timestamps: true });
+
+const User=mongoose.model("User", UserSchema);
+
+module.exports =  User;

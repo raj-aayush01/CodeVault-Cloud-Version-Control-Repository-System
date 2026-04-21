@@ -1,21 +1,45 @@
 const fs = require("fs").promises;
 const path = require("path");
+const mongoose = require("mongoose");
+const User = require("../models/userModel");
+require("dotenv").config();
 
-async function initRepo() {
-  const repoPath = path.resolve(process.cwd(), ".apnaGit");  // creating a path by appending .apnaGit folder inside backend folder
-  const commitsPath = path.join(repoPath, "commits");        // creating path by appending commits folder inside .apnaGit folder
-
+async function initRepo(username, repoName) {
+  const currentDir = process.cwd();
+  const repoPath = path.resolve(currentDir, ".apnaGit");
+  const commitsPath = path.join(repoPath, "commits");
+  
   try {
-    await fs.mkdir(repoPath, { recursive: true });          // This will actually create .apnaGit folder,   Location --->  backend/.apnaGit 
-    await fs.mkdir(commitsPath, { recursive: true });       // This will actually create commits folder,    Location --->  backend/.apnaGit/commits
+    
+    await mongoose.connect(process.env.MONGO_URL);
+
+
+    const user = await User.findOne({ username });
+
+    if (!user) {
+      console.log(`User "${username}" not found. Please signup first.`);
+      return;
+    }
+
+    await fs.mkdir(repoPath, { recursive: true });
+    await fs.mkdir(commitsPath, { recursive: true });
+    
+
     await fs.writeFile(
       path.join(repoPath, "config.json"),
-      JSON.stringify({ bucket: process.env.S3_BUCKET })
+      JSON.stringify({
+        bucket: process.env.S3_BUCKET,
+        userId: user._id.toString(),  
+        username: username,           
+        repoName
+      }, null, 2) 
     );
-    console.log("Repository initialised!");
-  } catch(err) {
-    console.error("Error initialising repository", err);
+
+    console.log(`Repository "${repoName}" initialized for user "${username}"!`);
+
+  } catch (err) {
+    console.error("Error initializing:", err.message);
   }
 }
 
-module.exports = { initRepo }
+module.exports = { initRepo };

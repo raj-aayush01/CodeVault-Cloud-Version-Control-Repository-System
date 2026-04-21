@@ -1,12 +1,16 @@
-const express = require("express");
-const issueController = require('../controllers/issueController');
+const express = require('express');
+const issueController = require("../controllers/issueController");
+const { authenticateMiddleware } = require("../middleware/authenticateMiddleware");
 
 const issueRouter = express.Router();
 
-issueRouter.post("/issue/create" , issueController.createIssue);
-issueRouter.put("/issue/update/:id" , issueController.updateIssueById);
-issueRouter.delete("/issue/delete/:id" , issueController.deleteIssueById);
-issueRouter.get("/issue/all" , issueController.getAllIssues);
-issueRouter.get("/issue/:id" , issueController.getIssueById);
+// PUBLIC
+issueRouter.get("/issue/all", issueController.getAllIssues);
+issueRouter.get("/issue/:id", issueController.getIssueById);
+
+//  Logged in 
+issueRouter.post("/issue/create", authenticateMiddleware, issueController.createIssue);
+issueRouter.put("/issue/:id", authenticateMiddleware, issueController.updateIssueById);
+issueRouter.delete("/issue/:id", authenticateMiddleware, issueController.deleteIssueById);
 
 module.exports = issueRouter;

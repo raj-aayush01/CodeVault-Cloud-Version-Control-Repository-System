@@ -1,124 +1,126 @@
-const mongoose = require("mongoose");
-const Repository = require("../models/repoModel");
-const Issue = require("../models/issueModel");
-
+const mongoose=require("mongoose");
+const Repository= require("../models/repoModel")
+const User=require("../models/userModel")
+const Issue=require("../models/issueModel")
 
 const createIssue = async (req, res) => {
-    const { title, description } = req.body;
-    const { id } = req.params;
+  try {
+    const { title, description, repositoryId } = req.body;
 
-    try {
-        const repo = await Repository.findById(id);
-        if (!repo) {
-            return res.status(404).json({ error: "Repository not found!" });
-        }
+    const issue = await Issue.create({
+      title,
+      description,
+      repository: repositoryId,
+      createdBy: req.user  
+    });
 
-        const issue = new Issue({
-            title,
-            description,
-            repository: id,
-        });
-    
-        await issue.save();
+    await Repository.findByIdAndUpdate(
+      repositoryId,
+      { $push: { issues: issue._id } }
+    );
 
-        repo.issues.push(issue._id);
-        await repo.save();
+    res.status(201).json({ 
+      message: "Issue created successfully", 
+      issue 
+    });
 
-        res.status(201).json(issue);
-
-    } catch(err) {
-        console.error("Error during issue creation : ", err.message);
-        res.status(500).send("Server error!");
-    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const updateIssueById = async (req, res) => {
-    const { id } = req.params;
-    const { title, description, status } = req.body;
+const updateIssueById=async (req,res)=>{
+    const {id}=req.params;
+    const {title, description,status}=req.body;
 
-    try {
-        const issue = await Issue.findById(id);
-
+    try{
+        const issue= await Issue.findById(id);
         if(!issue){
-            return res.status(404).json({error: "Issue not found!"});
+            return res.status(404).json({error:"Issue not found !"});
         }
 
-        if (title !== undefined) issue.title = title;
-        if (description !== undefined) issue.description = description;
-        if (status !== undefined) issue.status = status;
+        if (issue.createdBy.toString() !== req.user.toString()) {
+        return res.status(403).json({ 
+            message: "Access denied. You can only update your own issues." 
+        });
+        }
+
+        if (title) issue.title = title;
+        if (description) issue.description = description;
+        if (status) issue.status = status;
 
         await issue.save();
-        res.json({ message: "Issue updated!" , issue});
+        return res.json({message:"Issue Updated Successfully !"});
 
-    } catch(err) {
-        console.error("Error during issue updation : ", err.message);
-        res.status(500).send("Server error!");
+    } catch(err){
+        console.error("Error during issue updation: ",err.message);
+        res.status(500).json({error: err.message});
     }
-};
+}
 
-const deleteIssueById = async (req, res) => {
-    const { id } = req.params;
-
-    try {
-        const issue = await Issue.findByIdAndDelete(id);
-
-        if(!issue){
-            return res.status(404).json({error: "Issue not found!"});
+//bug fix
+const deleteIssueById=async (req,res)=>{
+    const {id}=req.params;
+    try{
+        const issue= await Issue.findByIdAndDelete(id);
+         if(!issue){
+            return res.status(404).json({error:"Issue not found !"});
         }
 
-        await Repository.findByIdAndUpdate(issue.repository, {
-            $pull: { issues: id }
+        if (issue.createdBy.toString() !== req.user.toString()) {
+        return res.status(403).json({ 
+            message: "Access denied. You can only update your own issues." 
         });
+        }
 
-        res.json({ message: "Issue deleted!" });
+        
+        await Repository.findByIdAndUpdate(
+        issue.repository,          
+        { $pull: { issues: id } }  
+        );
 
-    } catch(err) {
-        console.error("Error during issue deletion : ", err.message);
-        res.status(500).send("Server error!");
+        return res.json({message:"Issue Deleted Successfully !"});
+
+    }catch(err){
+        console.error("Error during issue deletion: ",err.message);
+        res.status(500).json({error: err.message});
     }
-};
+
+}
 
 const getAllIssues = async (req, res) => {
-    const { id } = req.params;
+  try {
+    const { repositoryId } = req.query;
 
-    try {
-        const issues = await Issue.find({ repository: id });
+    const issues = await Issue.find(
+      repositoryId ? { repository: repositoryId } : {}
+    );
 
-        if(!issues || issues.length == 0 ){
-            return res.status(404).json({error: "Issues not found!"});
-        }
 
-        res.status(200).json(issues);
+    res.status(200).json(issues);
 
-    } catch(err) {
-        console.error("Error during issue fetching : ", err.message);
-        res.status(500).send("Server error!");
-    }
+  } catch (err) {
+    console.error("Error during issues fetching: ", err.message);
+    res.status(500).json({ error: err.message });
+  }
 };
 
-const getIssueById = async (req, res) => {
-    const { id } = req.params;
+const getIssueById=async(req,res)=>{
+    const {id}=req.params;
 
-    try {
-        const issue = await Issue.findById(id);
-
+    try{
+        const issue= await Issue.findById(id);
         if(!issue){
-            return res.status(404).json({error: "Issue not found!"});
+            return res.status(404).json({error:"Issue not found !"});
         }
-
         res.json(issue);
-
-    } catch(err) {
-        console.error("Error during issue fetching : ", err.message);
-        res.status(500).send("Server error!");
+    } catch(err){
+        console.error("Error during issue fetching: ",err.message);
+        res.status(500).json({error: err.message});
     }
-};
+}
 
-
-module.exports = {
-    createIssue,
-    updateIssueById,
-    deleteIssueById,
-    getAllIssues,
-    getIssueById,
+module.exports={
+    createIssue,updateIssueById,deleteIssueById,getAllIssues,
+    getIssueById
 }
