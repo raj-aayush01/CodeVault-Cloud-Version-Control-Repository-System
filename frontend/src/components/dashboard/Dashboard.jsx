@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
 import Navbar from "../Navbar.jsx";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
     const [repositories, setRepositories] = useState([]);
@@ -13,6 +14,7 @@ const Dashboard = () => {
     const [userDetails, setUserDetails] = useState({});
 
     const userId = localStorage.getItem("userId");
+    const navigate = useNavigate();
 
     const userName = userDetails.username || "User";
     const userEmail = userDetails.email || "";
@@ -146,7 +148,12 @@ const Dashboard = () => {
                             </div>
                         </div>
 
-                        <button className="new-repo-btn">+ New Repository</button>
+                        <button
+                            className="new-repo-btn"
+                            onClick={() => navigate("/repo/create")}
+                            >
+                            + New Repository
+                        </button>
                     </div>
 
                     <div className="sidebar-panel">
@@ -157,7 +164,10 @@ const Dashboard = () => {
                         )}
 
                         {repositories.map((repo) => (
-                            <div key={repo._id} className="repo-card small">
+                            <div key={repo._id} className="repo-card small"
+                                onClick={() => navigate(`/repo/${repo._id}`)}
+                                style={{ cursor: "pointer" }}
+                            >
 
                                 <div className="small-card-top">
                                     <h4>{repo.name}</h4>
@@ -195,7 +205,12 @@ const Dashboard = () => {
                     )}
 
                     {filteredSuggested.map((repo) => (
-                        <div key={repo._id} className="repo-card">
+                        <div
+                            key={repo._id}
+                            className="repo-card"
+                            onClick={() => navigate(`/repo/${repo._id}`)}
+                            style={{ cursor: "pointer" }}
+                        >
 
                             <div className="repo-card-header">
 

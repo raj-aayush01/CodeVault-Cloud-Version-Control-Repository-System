@@ -102,7 +102,10 @@ const Signup = () => {
 
         <div className="pass-box">
           <p>
-            Already have an account? <Link to="/auth">Login</Link>
+            Already have an account?{" "}
+            <Link to="/auth" className="auth-link">
+              Login
+            </Link>
           </p>
         </div>
       </div>

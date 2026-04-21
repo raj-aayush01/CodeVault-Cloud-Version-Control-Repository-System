@@ -1,3 +1,14 @@
+.auth-link {
+  color: #e6edf3;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-link:hover {
+  color: #2f81f7;   /* GitHub blue */
+  text-decoration: underline;
+}
+
 .login-wrapper {
     color: #f1f6fd;
     min-height: 100vh;

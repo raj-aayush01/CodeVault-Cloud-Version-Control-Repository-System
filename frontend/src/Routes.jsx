@@ -7,6 +7,9 @@ import Profile from "./components/user/Profile" ;
 import Login from "./components/auth/Login" ;
 import Signup from "./components/auth/Signup" ;
 
+import CreateRepo from "./components/repo/CreateRepo";
+import RepoDetail from "./components/repo/RepoDetail";
+
 // Auth Context
 import { useAuth } from "./AuthContext";
 
@@ -50,6 +53,14 @@ const ProjectRoutes = () => {
         {
             path: "/profile" ,
             element: <Profile />
+        },
+        { 
+            path: "/repo/create", 
+            element: <CreateRepo /> 
+        },
+        { 
+            path: "/repo/:id", 
+            element: <RepoDetail /> 
         },
     ]);
 

@@ -1,6 +1,7 @@
 const express = require('express')
 const repoController = require("../controllers/repoController");
 const { authenticateMiddleware } = require("../middleware/authenticateMiddleware");
+const { getRepoFiles, getFileContent } = require("../controllers/fileController");
 
 const authorizeMiddleware = require("../middleware/authorizeMiddleware");
 
@@ -11,6 +12,8 @@ repoRouter.get("/repo/all", repoController.getAllRepositories);
 repoRouter.get("/repo/:id", repoController.fetchRepositoryById);
 repoRouter.get("/repo/name/:name", repoController.fetchRepositoryByName);
 repoRouter.get("/repo/user/:userID", repoController.fetchRepositoriesForCurrentUser);
+repoRouter.get("/repo/:id/files", getRepoFiles);
+repoRouter.get("/repo/:id/file", getFileContent);
 
 // logged-in user — authenticate only
 repoRouter.post("/repo/create", authenticateMiddleware, repoController.createRepository);
@@ -21,4 +24,3 @@ repoRouter.delete("/repo/delete/:id", authenticateMiddleware, authorizeMiddlewar
 repoRouter.patch("/repo/toggle/:id", authenticateMiddleware, authorizeMiddleware, repoController.toggleVisibilityById);
 
 module.exports = repoRouter;
-module.exports= repoRouter;
