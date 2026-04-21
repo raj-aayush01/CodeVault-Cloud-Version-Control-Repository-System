@@ -43,7 +43,7 @@ const signup = async (req, res) => {
             {   expiresIn: "1h" }
         );
 
-        res.json({token});
+        res.json({token, userId: newUserDoc._id});
 
     } catch(err) {
         console.error("Error during signup : " , err.message );

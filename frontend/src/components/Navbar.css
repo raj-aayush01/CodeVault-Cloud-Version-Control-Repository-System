@@ -1,0 +1,103 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&display=swap');
+
+/* ── Navbar ───────────────────────────────────────────── */
+.navbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    height: 70px;
+
+    /* Glass effect */
+    background: rgba(7, 11, 16, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid #1e2d3d;
+}
+
+/* ── Brand — logo + name ──────────────────────────────── */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+}
+
+.nav-brand img {
+    width: 28px;
+    height: 28px;
+}
+
+.nav-brand h3 {
+    font-family: 'Sora', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: #e6edf3;
+    letter-spacing: -0.3px;
+    text-transform: none;   /* override Dashboard.css h3 uppercase */
+}
+
+/* ── Right side links ─────────────────────────────────── */
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Create a Repository button */
+.nav-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #e6edf3;
+    background: #1e2d3d;
+    border: 1px solid #2f81f740;
+    border-radius: 8px;
+    padding: 6px 14px;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nav-btn:hover {
+    background: rgba(47, 129, 247, 0.1);
+    border-color: #2f81f7;
+    box-shadow: 0 0 12px rgba(47, 129, 247, 0.15);
+    color: #2f81f7;
+}
+
+/* Profile avatar circle */
+/* .nav-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2f81f7, #39d3f0);
+    border: 2px solid #1e2d3d;
+    text-decoration: none;
+    font-family: 'Sora', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+} */
+
+.nav-avatar{
+    text-decoration: none;
+    color: white;
+    font-weight: 200;
+}
+
+.nav-avatar:hover {
+    border-color: #2f81f7;
+    box-shadow: 0 0 0 3px rgba(47, 129, 247, 0.25);
+    transform: scale(1.07);
+}
