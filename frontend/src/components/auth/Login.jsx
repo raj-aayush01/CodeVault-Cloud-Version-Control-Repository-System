@@ -3,6 +3,8 @@ import axios from "axios";
 import { useAuth } from "../../AuthContext";
 import "./auth.css";
 
+import { useNavigate } from "react-router-dom";
+
 import logo from "../../assets/github-mark-white.svg";
 import { Link } from "react-router-dom";
 
@@ -10,6 +12,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const { setCurrentUser } = useAuth();
 
@@ -23,13 +26,16 @@ const Login = () => {
         password: password,
       });
 
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("userId", res.data.userId);
+      const userId = res.data.user?._id || res.data._id;
 
-      setCurrentUser(res.data.userId);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("userId", userId);
+      setCurrentUser(userId);
+
       setLoading(false);
 
-      window.location.href = "/";
+      navigate("/");
+
     } catch (err) {
       console.error(err);
       alert("Login Failed!");

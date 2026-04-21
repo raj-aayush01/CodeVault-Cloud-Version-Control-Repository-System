@@ -4,7 +4,7 @@ const { authenticateMiddleware } = require("../middleware/authenticateMiddleware
 
 const userRouter = express.Router();
 
-//  PUBLIC — koi bhi
+//  PUBLIC 
 userRouter.get("/allUsers", userController.getAllUsers);
 userRouter.post("/signup", userController.signUp);
 userRouter.post("/login", userController.login);

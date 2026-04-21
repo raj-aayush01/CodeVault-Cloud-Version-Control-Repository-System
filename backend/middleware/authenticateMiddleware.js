@@ -1,23 +1,37 @@
-const jwt= require("jsonwebtoken");
-const authMiddleware =(req,res,next)=>{
-    try{
-        const authHeader=req.headers.authorization;
+const jwt = require("jsonwebtoken");
 
-      if (!authHeader) {
+const authMiddleware = (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
       return res.status(401).json({ message: "No token provided" });
     }
 
-    const token = authHeader.split(" ")[1];
-    
-    const decoded=jwt.verify(token,process.env.JWT_SECRET);
+    if (!authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "Invalid token format" });
+    }
 
-    req.user=decoded.id;
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ message: "Invalid token format" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    req.user = decoded.id;
+
     next();
-    }catch (err) {
-    return res.status(401).json({ message: "Invalid token" });
+  } catch (err) {
+    return res.status(401).json({
+      message: err.name === "TokenExpiredError"
+        ? "Token expired"
+        : "Invalid token",
+    });
   }
-}
+};
 
 module.exports = {
-  authenticateMiddleware: authMiddleware
+  authenticateMiddleware: authMiddleware,
 };

@@ -35,27 +35,36 @@ const SignOutIcon = () => (
 const Profile = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
-  const [userDetails, setUserDetails] = useState({ username: "username" });
+  const [userDetails, setUserDetails] = useState({});
   const { setCurrentUser } = useAuth();
 
   useEffect(() => {
     const fetchUserDetails = async () => {
       const userId = localStorage.getItem("userId");
-      if (userId) {
-        try {
-          const response = await axios.get(`http://localhost:3000/userProfile/${userId}`);
-          setUserDetails(response.data);
-        } catch (err) {
-          console.error("Cannot fetch user details:", err);
-        }
+      if (!userId) return;
+
+      try {
+        const [userRes, followRes] = await Promise.all([
+          axios.get(`http://localhost:3000/userProfile/${userId}`),
+          axios.get(`http://localhost:3000/follow/${userId}/data`)
+        ]);
+
+        setUserDetails({
+          ...userRes.data,
+          followers: followRes.data.followers,
+          following: followRes.data.following,
+        });
+
+      } catch (err) {
+        console.error("Cannot fetch user details:", err);
       }
     };
+
     fetchUserDetails();
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userId");
+    localStorage.clear();
     setCurrentUser(null);
     window.location.href = "/auth";
   };
@@ -63,6 +72,13 @@ const Profile = () => {
   const initials = userDetails.username
     ? userDetails.username.slice(0, 2).toUpperCase()
     : "??";
+
+  const currentUserId = localStorage.getItem("userId");
+
+  // ✅ FIXED FOLLOW CHECK
+  const isFollowing = userDetails.followers?.some(
+    (f) => String(f._id || f) === String(currentUserId)
+  );
 
   return (
     <div className="profile-root">
@@ -77,9 +93,13 @@ const Profile = () => {
           <BookIcon />
           Overview
         </button>
+
         <button
           className={`profile-tab-btn ${activeTab === "starred" ? "active" : ""}`}
-          onClick={() => { setActiveTab("starred"); navigate("/repo"); }}
+          onClick={() => {
+            setActiveTab("starred");
+            navigate("/repo");
+          }}
         >
           <RepoIcon />
           Starred Repositories
@@ -92,7 +112,6 @@ const Profile = () => {
         {/* SIDEBAR */}
         <aside className="profile-sidebar">
 
-          {/* Avatar */}
           <div className="avatar-wrap">
             <div className="avatar-circle">
               <span className="avatar-initials">{initials}</span>
@@ -100,27 +119,33 @@ const Profile = () => {
             <span className="avatar-online-dot" />
           </div>
 
-          {/* Name */}
           <h2 className="profile-display-name">{userDetails.username}</h2>
           <p className="profile-handle">@{userDetails.username?.toLowerCase()}</p>
-          <p className="profile-bio">No bio yet.</p>
+          <p className="profile-bio">{userDetails.bio || "No bio yet."}</p>
 
-          {/* Follow */}
-          <button className="profile-follow-btn">Follow</button>
+          {/* ❌ Hide follow button on own profile */}
+          {userDetails._id !== currentUserId && (
+            <button className="profile-follow-btn">
+              {isFollowing ? "Following" : "Follow"}
+            </button>
+          )}
 
           <hr className="profile-divider" />
 
           {/* Stats */}
           <div className="profile-stats">
             <PeopleIcon />
-            <span><strong>10</strong> followers</span>
+            <span>
+              <strong>{userDetails.followers?.length || 0}</strong> followers
+            </span>
             <span className="profile-stats-sep">·</span>
-            <span><strong>3</strong> following</span>
+            <span>
+              <strong>{userDetails.following?.length || 0}</strong> following
+            </span>
           </div>
 
           <hr className="profile-divider" />
 
-          {/* Sign out */}
           <button className="profile-signout-btn" onClick={handleLogout}>
             <SignOutIcon />
             Sign out
@@ -132,8 +157,12 @@ const Profile = () => {
         <main className="profile-main">
           <div className="contributions-card">
             <div className="contributions-card-header">
-              {/* <span className="contributions-card-title">Recent Contributions</span> */}
-              <span className="contributions-card-badge">Last 3 months</span>
+              <span className="contributions-card-title">
+                Contribution Activity
+              </span>
+              <span className="contributions-card-badge">
+                Last 3 months
+              </span>
             </div>
             <HeatMapProfile />
           </div>
